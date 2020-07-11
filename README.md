@@ -7,13 +7,12 @@ julia> function hard_mish(x) # x(x+1)^2 "between" ReLU
          l = x + one(x)
          if x >= zero(x)
            return x
-         elseif x <= l
+         elseif x <= -one(x)
            return zero(x)
          else
            return l^2*x
          end
        end
-
 
 julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
          l = convert(typeof(x), 0.25)*x + one(x)
@@ -26,12 +25,49 @@ julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
          end
        end
 
-
-
-julia> @btime hard_mish(-0.5f0)
+julia> @btime hard_mish(-0.5)
   0.024 ns (0 allocations: 0 bytes)
-0.0f0
+-0.125
+
+julia> @code_native hard_mish(10.0)
+	.text
+; ┌ @ REPL[78]:1 within `hard_mish'
+	vxorps	%xmm1, %xmm1, %xmm1
+; │ @ REPL[78]:3 within `hard_mish'
+; │┌ @ operators.jl:350 within `>='
+; ││┌ @ float.jl:460 within `<='
+	vucomisd	%xmm1, %xmm0
+; │└└
+	jae	L53
+	movabsq	$139696212938512, %rax  # imm = 0x7F0D8F260F10
+	vmovsd	(%rax), %xmm2           # xmm2 = mem[0],zero
+; │ @ REPL[78]:5 within `hard_mish'
+; │┌ @ float.jl:460 within `<='
+	vucomisd	%xmm0, %xmm2
+; │└
+	jae	L57
+	movabsq	$.rodata.cst8, %rax
+	vaddsd	(%rax), %xmm0, %xmm1
+; │ @ REPL[78]:8 within `hard_mish'
+; │┌ @ intfuncs.jl:296 within `literal_pow'
+; ││┌ @ float.jl:405 within `*'
+	vmulsd	%xmm1, %xmm1, %xmm1
+; │└└
+; │┌ @ float.jl:405 within `*'
+	vmulsd	%xmm0, %xmm1, %xmm0
+; │└
+	retq
+L53:
+	vmovaps	%xmm0, %xmm1
+; │ @ REPL[78]:4 within `hard_mish'
+L57:
+	vmovaps	%xmm1, %xmm0
+	retq
+	nop
+; └
 ```
+
+My hard_mish is also as fast for Float16, while hard_mish2 is currently orders of magnitute slower for that type, but as fast for machine floats.
 
 so I find likely to be better than:
 
