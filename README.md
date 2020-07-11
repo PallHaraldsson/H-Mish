@@ -25,6 +25,8 @@ julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
          end
        end
 
+julia> hard_mish2(x::Float16) = convert(Float16, Float32(x)) # converting to Float64 is as fast but thinking of GPUs, and do not fully trust timing as a bit more instructions with Float32
+
 julia> @btime hard_mish(-0.5)
   0.024 ns (0 allocations: 0 bytes)
 -0.125
@@ -71,9 +73,9 @@ See plots here (substitute extreme values with ReLU, i.e. under -1 or -4, and ab
 
 http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiIoMC4yNSp4KzEpXjIqeCIsImNvbG9yIjoiIzAwMDAwMCJ9LHsidHlwZSI6MCwiZXEiOiJ4Kih4KzEpXjIiLCJjb2xvciI6IiMwMDAwMDAifSx7InR5cGUiOjEwMDB9XQ--
 
-My hard_mish is also as fast for Float16, while hard_mish2 is currently orders of magnitute slower for that type, but as fast for machine floats.
+My hard_mish is also as fast for Float16, and hard_mish2 is now too (was orders of magnitute slower for that type with out special casing, while was/is as fast for machine floats).
 
-so I find likely to be better than:
+I find mine likely to be better with the third-order polynominal (at least not slower), than second-order, the parabola in the original:
 
 Formula - *(x/2).min(2, max(0, x+2))*
 
