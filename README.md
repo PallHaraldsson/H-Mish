@@ -3,7 +3,7 @@
 My hard_mish approximation times as fast as ReLU for all values, and is closer to original Mish than the approximation (continuous second derivative, including at -1.0; or -4.0 for hard_mish2), I fork from.
 
 ```julia
-julia> function hard_mish(x)
+julia> function hard_mish(x) # x(x+1)^2 "between" ReLU
          l = x + one(x)
          if x >= zero(x)
            return x
@@ -15,8 +15,8 @@ julia> function hard_mish(x)
        end
 
 
-julia> function hard_mish2(x)
-         l = 0.25x + one(x)
+julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
+         l = convert(typeof(x), 0.25)*x + one(x)
          if x >= zero(x)
            return x
          elseif x <= convert(typeof(x), -4)
