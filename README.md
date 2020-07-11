@@ -1,6 +1,6 @@
 # H-Mish
 
-My hard_mish approximation times as fast as ReLU for all values, and is closer to mish than the approximation I fork from.
+My hard_mish approximation times as fast as ReLU for all values, and is closer to original Mish than the approximation (continuous second derivative, including at -1) I fork from.
 
 ```julia
 julia> function hard_mish(x)
