@@ -1,9 +1,9 @@
 # H-Mish
 
-My hard_mish approximation times as fast as ReLU for all values, and is closer to original Mish than the approximation (continuous second derivative, including at -1.0; or -4.0 for hard_mish2), I fork from.
+My hard_mish (and hard_mish2, switched names around from origina) approximation times are as fast as ReLU for all values, and is closer to original Mish than the approximation (continuous second derivative, including at -1.0; or -4.0 for hard_mish2), I fork from.
 
 ```julia
-julia> function hard_mish(x) # x(x+1)^2 "between" ReLU
+julia> function hard_mish2(x) # x(x+1)^2 "between" ReLU
          l = x + one(x)
          if x >= zero(x)
            return x
@@ -14,7 +14,7 @@ julia> function hard_mish(x) # x(x+1)^2 "between" ReLU
          end
        end
 
-julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
+julia> function hard_mish(x)  # x(0.25*x+1)^2 "between" ReLU
          l = convert(typeof(x), 0.25)*x + one(x)
          if x >= zero(x)
            return x
@@ -25,25 +25,28 @@ julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
          end
        end
 
-julia> hard_mish2(x::Float16) = convert(Float16, Float32(x)) # converting to Float64 is as fast but thinking of GPUs, and do not fully trust timing as a bit more instructions with Float32
+julia> hard_mish(x::Float16) = convert(Float16, Float32(x)) # converting to Float64 is as fast but thinking of GPUs, and do not fully trust timing as a bit more instructions with Float32
 
-julia> @btime hard_mish2(-1.2)  # near minimum, and similar to for original Mish, unlike for forked hard-mish
+julia> using BenchmarkTools
+
+julia> @btime hard_mish(-1.2)  # near minimum, and similar to for original Mish, unlike for forked hard-mish
   0.024 ns (0 allocations: 0 bytes)
 -0.5879999999999999
 
-julia> @btime hard_mish2(Float16(-1.2))  # still performance bug, while it's only slower for the curve-part
-  25.317 ns (0 allocations: 0 bytes)
--0.5880136613850482
+julia> @btime hard_mish(Float16(-1.2))
+  0.025 ns (0 allocations: 0 bytes)
+Float16(-0.588)
 
-julia> @btime hard_mish(Float16(-0.2))  # near minimum, but minumum much higher than for orignal Mish
+
+julia> @btime hard_mish2(Float16(-0.2))  # near minimum, but minumum much higher than for original Mish
   0.024 ns (0 allocations: 0 bytes)
 Float16(-0.1279)
 
-julia> @btime hard_mish(-0.5)
+julia> @btime hard_mish2(-0.5)
   0.024 ns (0 allocations: 0 bytes)
 -0.125
 
-julia> @code_native hard_mish(10.0)
+julia> @code_native hard_mish2(10.0)
 	.text
 ; ┌ @ REPL[78]:1 within `hard_mish'
 	vxorps	%xmm1, %xmm1, %xmm1
@@ -85,7 +88,7 @@ See plots here (substitute extreme values with ReLU, i.e. under -1 or -4, and ab
 
 http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiIoMC4yNSp4KzEpXjIqeCIsImNvbG9yIjoiIzAwMDAwMCJ9LHsidHlwZSI6MCwiZXEiOiJ4Kih4KzEpXjIiLCJjb2xvciI6IiMwMDAwMDAifSx7InR5cGUiOjEwMDB9XQ--
 
-[EDIT: workling on this (was wrong): My hard_mish is also as fast for Float16, and hard_mish2 is now too (was orders of magnitute slower for that type with out special casing, while was/is as fast for machine floats).]
+My hard_mish is also as fast for Float16, and hard_mish2 is now too (was orders of magnitute slower for that type with out special casing, while was/is as fast for machine floats).
 
 I find mine likely to be better with the third-order polynominal (at least not slower), than second-order, the parabola in the original:
 
