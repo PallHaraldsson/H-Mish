@@ -1,6 +1,6 @@
 # Hard-Mish
 
-My hard_mish (and hard_mish2, switched names around from origina) approximation times are as fast as ReLU for all values, and is closer to original Mish than the approximation (continuous second derivative, including at -4.0; or -1.0 for hard_mish2), I fork from.
+My hard_mish (and hard_mish2, switched names around from original) approximation times are as fast as ReLU for all values, and is closer to original Mish than the approximation (continuous second derivative, including at -4.0; or -1.0 for hard_mish2), I fork from.
 
 ```julia
 julia> function hard_mish2(x) # x(x+1)^2 "between" ReLU
