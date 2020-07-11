@@ -67,6 +67,10 @@ L57:
 ; └
 ```
 
+See plots here (substitute extreme values with ReLU, i.e. under -1 or -4, and above 0.0):
+
+http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiIoMC4yNSp4KzEpXjIqeCIsImNvbG9yIjoiIzAwMDAwMCJ9LHsidHlwZSI6MCwiZXEiOiJ4Kih4KzEpXjIiLCJjb2xvciI6IiMwMDAwMDAifSx7InR5cGUiOjEwMDB9XQ--
+
 My hard_mish is also as fast for Float16, while hard_mish2 is currently orders of magnitute slower for that type, but as fast for machine floats.
 
 so I find likely to be better than:
