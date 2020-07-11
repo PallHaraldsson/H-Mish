@@ -27,6 +27,18 @@ julia> function hard_mish2(x)  # x(0.25*x+1)^2 "between" ReLU
 
 julia> hard_mish2(x::Float16) = convert(Float16, Float32(x)) # converting to Float64 is as fast but thinking of GPUs, and do not fully trust timing as a bit more instructions with Float32
 
+julia> @btime hard_mish2(-1.2)  # near minimum, and similar to for original Mish, unlike for forked hard-mish
+  0.024 ns (0 allocations: 0 bytes)
+-0.5879999999999999
+
+julia> @btime hard_mish2(Float16(-1.2))  # still performance bug, while it's only slower for the curve-part
+  25.317 ns (0 allocations: 0 bytes)
+-0.5880136613850482
+
+julia> @btime hard_mish(Float16(-0.2))  # near minimum, but minumum much higher than for orignal Mish
+  0.024 ns (0 allocations: 0 bytes)
+Float16(-0.1279)
+
 julia> @btime hard_mish(-0.5)
   0.024 ns (0 allocations: 0 bytes)
 -0.125
@@ -73,7 +85,7 @@ See plots here (substitute extreme values with ReLU, i.e. under -1 or -4, and ab
 
 http://fooplot.com/#W3sidHlwZSI6MCwiZXEiOiIoMC4yNSp4KzEpXjIqeCIsImNvbG9yIjoiIzAwMDAwMCJ9LHsidHlwZSI6MCwiZXEiOiJ4Kih4KzEpXjIiLCJjb2xvciI6IiMwMDAwMDAifSx7InR5cGUiOjEwMDB9XQ--
 
-My hard_mish is also as fast for Float16, and hard_mish2 is now too (was orders of magnitute slower for that type with out special casing, while was/is as fast for machine floats).
+[EDIT: workling on this (was wrong): My hard_mish is also as fast for Float16, and hard_mish2 is now too (was orders of magnitute slower for that type with out special casing, while was/is as fast for machine floats).]
 
 I find mine likely to be better with the third-order polynominal (at least not slower), than second-order, the parabola in the original:
 
